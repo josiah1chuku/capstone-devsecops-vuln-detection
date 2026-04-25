@@ -19,9 +19,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install torch==2.1.0 --index-url https://download.pytorch.org/whl/cpu
-          pip install transformers==4.35.0 huggingface-hub==0.16.4
-          pip install numpy==1.26.4 pandas scikit-learn matplotlib tqdm
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install transformers huggingface-hub
+          pip install numpy pandas scikit-learn matplotlib tqdm
 
       - name: Verify project files
         run: |
@@ -42,7 +42,7 @@ jobs:
               if status != 'OK':
                   all_ok = False
           if not all_ok:
-              raise SystemExit('Missing files detected')
+              raise SystemExit('Missing files')
           print('All files verified')
           "
 
@@ -66,9 +66,9 @@ jobs:
           with torch.no_grad():
               out = model(ids, mask, nf, ei, et, bv)
           probs = torch.softmax(out, dim=1)[:, 1]
-          print(f'Forward pass output shape: {list(out.shape)}')
-          print(f'Vulnerability probabilities: {probs.tolist()}')
-          print('CI smoke test PASSED')
+          print(f'Output shape : {list(out.shape)}')
+          print(f'Vuln probs   : {[round(p,4) for p in probs.tolist()]}')
+          print('Smoke test PASSED')
           "
 
       - name: Save CI report
@@ -77,15 +77,15 @@ jobs:
           python -c "
           import json
           report = {
-              'status': 'passed',
-              'model': 'VulnDetector (CodeBERT + R-GCN + Gated Fusion)',
-              'parameters': '126M',
-              'best_val_f1': 0.7794,
-              'test_auc': 0.7677,
-              'test_f1': 0.2570,
-              'test_mcc': 0.2117,
+              'status':         'passed',
+              'model':          'VulnDetector (CodeBERT + R-GCN + Gated Fusion)',
+              'parameters':     '126M',
+              'best_val_f1':    0.7794,
+              'test_auc':       0.7677,
+              'test_f1':        0.2570,
+              'test_mcc':       0.2117,
               'test_precision': 0.1948,
-              'test_recall': 0.3774,
+              'test_recall':    0.3774,
               'note': 'Full eval requires DiverseVul dataset and checkpoint'
           }
           with open('results/ci_report.json', 'w') as f:
